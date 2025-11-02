@@ -12,36 +12,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.evaluacion2_petsonline.ui.theme.Evaluacion2_PetsOnlineTheme
+import androidx.activity.compose.setContent
+import com.example.evaluacion2_petsonline.ui.navigation.AppNavigation
+import com.example.evaluacion2_petsonline.ui.theme.Evaluacion2_PetsOnlineTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContent {
             Evaluacion2_PetsOnlineTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                AppNavigation()
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    Evaluacion2_PetsOnlineTheme {
-        Greeting("Android")
     }
 }
