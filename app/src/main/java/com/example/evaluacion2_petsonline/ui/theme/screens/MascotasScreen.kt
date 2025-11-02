@@ -1,5 +1,10 @@
 package com.example.evaluacion2_petsonline.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -13,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.evaluacion2_petsonline.viewmodel.MascotaViewModel
+import androidx.compose.material3.HorizontalDivider
 
 @Composable
 fun MascotasScreen(navController: NavController, vm: MascotaViewModel = viewModel()) {
@@ -44,7 +50,6 @@ fun MascotasScreen(navController: NavController, vm: MascotaViewModel = viewMode
                 style = MaterialTheme.typography.headlineSmall
             )
 
-            // 🐾 Campos del formulario
             OutlinedTextField(
                 value = state.nombre,
                 onValueChange = { vm.onNombre(it) },
@@ -84,7 +89,6 @@ fun MascotasScreen(navController: NavController, vm: MascotaViewModel = viewMode
                 Text("Guardar Mascota")
             }
 
-            // 🐾 Mostrar mensajes Snackbars
             LaunchedEffect(mensaje) {
                 mensaje?.let {
                     snackbarHostState.showSnackbar(it)
@@ -92,7 +96,7 @@ fun MascotasScreen(navController: NavController, vm: MascotaViewModel = viewMode
                 }
             }
 
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
             Text(
                 text = "Lista de Mascotas",
@@ -110,34 +114,40 @@ fun MascotasScreen(navController: NavController, vm: MascotaViewModel = viewMode
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f) // ← esto evita que tape los campos del formulario
+                        .weight(1f)
                 ) {
-                    items(state.lista) { mascota ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 4.dp),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    items(state.lista, key = { it.id }) { mascota ->
+                        AnimatedVisibility(
+                            visible = true,
+                            enter = fadeIn() + expandVertically(),
+                            exit = fadeOut() + shrinkVertically()
                         ) {
-                            Column(
-                                modifier = Modifier.padding(12.dp),
-                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 4.dp),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
                             ) {
-                                Text(
-                                    "${mascota.nombre} (${mascota.especie}) - ${mascota.edad} años",
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
-                                if (mascota.descripcion.isNotBlank()) {
-                                    Text(mascota.descripcion)
-                                }
-                                Button(
-                                    onClick = { vm.eliminarMascota(mascota.id) },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.error
-                                    ),
-                                    modifier = Modifier.fillMaxWidth()
+                                Column(
+                                    modifier = Modifier.padding(12.dp),
+                                    verticalArrangement = Arrangement.spacedBy(4.dp)
                                 ) {
-                                    Text("Eliminar")
+                                    Text(
+                                        "${mascota.nombre} (${mascota.especie}) - ${mascota.edad} años",
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
+                                    if (mascota.descripcion.isNotBlank()) {
+                                        Text(mascota.descripcion)
+                                    }
+                                    Button(
+                                        onClick = { vm.eliminarMascota(mascota.id) },
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.error
+                                        ),
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Text("Eliminar")
+                                    }
                                 }
                             }
                         }

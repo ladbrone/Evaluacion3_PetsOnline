@@ -25,7 +25,6 @@ class ServicioRepository(private val context: Context) {
         }
     }
 
-    // Carga inicial si no hay servicios (solo la primera vez)
     suspend fun inicializarServicios() {
         val actuales = getCurrentServicios()
         if (actuales.isEmpty()) {

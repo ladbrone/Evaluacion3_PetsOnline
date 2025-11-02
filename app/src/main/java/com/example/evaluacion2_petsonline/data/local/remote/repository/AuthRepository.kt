@@ -10,7 +10,6 @@ class AuthRepository(context: Context) {
     private val api = RetrofitClient.create(context).create(ApiService::class.java)
     private val session = SessionManager(context)
 
-    // 🔹 LOGIN
     suspend fun login(email: String, password: String): Result<String> {
         return try {
             val response = api.login(LoginRequest(email, password))
@@ -22,7 +21,6 @@ class AuthRepository(context: Context) {
         }
     }
 
-    // 🔹 SIGNUP
     suspend fun signup(email: String, password: String): Result<String> {
         return try {
             val response = api.signup(LoginRequest(email, password))
@@ -34,19 +32,17 @@ class AuthRepository(context: Context) {
         }
     }
 
-    // 🔹 PERFIL (opcional, muestra email)
     suspend fun getProfile(): Result<String> {
         return try {
             val token = session.getToken() ?: return Result.failure(Exception("No hay token guardado"))
             val profile = api.getProfile("Bearer $token")
-            Result.success(profile.toString())
+
+            val email = profile["email"]?.toString() ?: "Sin correo"
+            Result.success(email)
+
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    // 🔹 LOGOUT
-    suspend fun logout() {
-        session.clearToken()
-    }
 }

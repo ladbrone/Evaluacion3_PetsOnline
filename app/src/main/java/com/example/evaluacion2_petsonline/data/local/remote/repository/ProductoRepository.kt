@@ -25,7 +25,6 @@ class ProductoRepository(private val context: Context) {
         }
     }
 
-    // Carga inicial
     suspend fun inicializarProductos() {
         val actuales = getCurrentProductos()
         if (actuales.isEmpty()) {

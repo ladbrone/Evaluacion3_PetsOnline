@@ -31,7 +31,7 @@ fun AppNavigation() {
             startDestination = "splash",
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable("splash") { SplashScreen(navController, session) }
+            composable("splash") { SplashScreen(navController) }
             composable("login") { LoginScreen(navController) }
             composable("signup") { SignupScreen(navController) }
             composable("home") { HomeScreen(navController) }

@@ -11,10 +11,9 @@ data class LoginRequest(
     val password: String
 )
 
-// Ajusta el nombre de acuerdo al campo real del token que te devuelve Xano
 data class LoginResponse(
     @SerializedName("authToken")
-    val authToken: String?, // puede ser "token" si Xano lo devuelve así
+    val authToken: String?,
     @SerializedName("user")
     val user: UserResponse?
 )
