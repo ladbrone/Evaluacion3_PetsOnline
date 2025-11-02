@@ -25,9 +25,13 @@ data class UserResponse(
 )
 
 interface ApiService {
+
+    @POST("auth/signup")
+    suspend fun signup(@Body request: LoginRequest): LoginResponse
+
     @POST("auth/login")
     suspend fun login(@Body request: LoginRequest): LoginResponse
 
     @GET("auth/me")
-    suspend fun getProfile(@Header("Authorization") token: String): UserResponse
+    suspend fun getProfile(@Header("Authorization") token: String): Map<String, Any>
 }
