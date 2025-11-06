@@ -3,7 +3,6 @@ package com.example.evaluacion2_petsonline.utils
 import android.Manifest
 import android.app.Activity
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Environment
@@ -35,6 +34,7 @@ fun ImagePickerDialog(
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var showDialog by remember { mutableStateOf(false) }
 
+    // 📸 Launchers para cámara y galería
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
@@ -42,19 +42,13 @@ fun ImagePickerDialog(
         onImagePicked(uri)
     }
 
-    val photoFile = remember {
-        File.createTempFile(
-            "IMG_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())}",
-            ".jpg",
-            context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-        )
+    fun createImageFile(context: Context): File {
+        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val storageDir: File? = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        return File.createTempFile("IMG_${timeStamp}_", ".jpg", storageDir)
     }
 
-    val cameraUri = FileProvider.getUriForFile(
-        context,
-        "${context.packageName}.fileprovider",
-        photoFile
-    )
+    var cameraUri by remember { mutableStateOf<Uri?>(null) }
 
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
@@ -65,14 +59,25 @@ fun ImagePickerDialog(
         }
     }
 
-    val cameraPermissionGranted = ContextCompat.checkSelfPermission(
-        context,
-        Manifest.permission.CAMERA
-    ) == PackageManager.PERMISSION_GRANTED
+    val requestCameraPermission = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            val file = createImageFile(context)
+            cameraUri = FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.provider",
+                file
+            )
+            cameraLauncher.launch(cameraUri!!)
+        }
+    }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxWidth().padding(16.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
     ) {
         if (imageUri != null) {
             Image(
@@ -95,16 +100,25 @@ fun ImagePickerDialog(
                 onDismissRequest = { showDialog = false },
                 title = { Text("Seleccionar imagen") },
                 text = {
-                    Column {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Button(onClick = {
-                            if (cameraPermissionGranted) {
-                                cameraLauncher.launch(cameraUri)
-                                showDialog = false
+                            val permissionGranted = ContextCompat.checkSelfPermission(
+                                context,
+                                Manifest.permission.CAMERA
+                            ) == PackageManager.PERMISSION_GRANTED
+
+                            if (permissionGranted) {
+                                val file = createImageFile(context)
+                                cameraUri = FileProvider.getUriForFile(
+                                    context,
+                                    "${context.packageName}.provider",
+                                    file
+                                )
+                                cameraLauncher.launch(cameraUri!!)
                             } else {
-                                val intent = Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE)
-                                (context as? Activity)?.startActivity(intent)
-                                showDialog = false
+                                requestCameraPermission.launch(Manifest.permission.CAMERA)
                             }
+                            showDialog = false
                         }) {
                             Text("📷 Tomar foto")
                         }
