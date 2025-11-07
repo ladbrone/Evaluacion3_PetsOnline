@@ -1,45 +1,126 @@
-# Evaluación 2 - PetsOnline
+Evaluación 2 - PetsOnlineSPA
 
-**PetsOnline** es una aplicación que permite a los usuarios gestionar el perfil de sus mascotas, servicios veterinarios, productos y reservas. La aplicación está diseñada para ofrecer una experiencia amigable y sencilla de interactuar con las funcionalidades esenciales para el cuidado de las mascotas.
+1. Caso elegido y alcance
 
+Caso: PetsOnlineSPA (Cliente, Productos, Servicios Veterinarios, Reservas y Mascotas).
 
-- **Autenticación**: Los usuarios pueden registrarse, iniciar sesión y mantener su sesión iniciada.
-- **Gestión de mascotas**: Los usuarios pueden registrar y eliminar sus mascotas.
-- **Productos**: Visualiza productos disponibles para mascotas.
-- **Servicios**: Los usuarios pueden consultar servicios veterinarios.
-- **Reserva**: Los usuarios pueden realizar reservas para servicios.
+Alcance: Diseño/UI, validaciones, navegación, gestión de estado, persistencia local, recursos nativos, animaciones y consumo de API real.
 
+2. Requisitos y ejecución
 
-La aplicación está construida usando **Jetpack Compose** para la interfaz de usuario y **MVVM** para la arquitectura. Los datos se almacenan localmente utilizando **DataStore** para persistir la sesión y las mascotas registradas. El backend de la aplicación está conectado a una **API REST** proporcionada por **Xano**, que maneja la autenticación y los datos de las mascotas.
+Stack:
+- Kotlin + Android Studio (Jetpack Compose)
+- ViewModel + StateFlow para gestión de estado
+- DataStore para persistencia local
+- Retrofit + Coroutines para consumo de API
+- Coil para carga de imágenes
+- Navigation Compose
 
-- **Login y Registro**: Implementados con validaciones de formato de correo electrónico y seguridad de contraseña.
-- **Pantallas de mascotas, productos, servicios y reservas**: Cada una con navegación independiente y validación de entradas.
-- **Persistencia**: Uso de **DataStore** para guardar el token de sesión y mantener al usuario autenticado entre reinicios de la aplicación.
-
-
-La aplicación interactúa con una API REST externa que maneja la autenticación, el perfil del usuario y otros datos relacionados con las mascotas:
-
-1. **Login**: `POST /auth/login`
-   - Requiere: correo electrónico y contraseña. 
-   - Respuesta: Token de autenticación.
-
-
-2. **Signup**: `POST /auth/signup`
-   - Requiere: correo electrónico y contraseña.
-   - Respuesta: Token de autenticación.
-
-
-3. **Perfil de usuario**: `GET /auth/me`
-   - Requiere: Header con token de autenticación.
-   - Respuesta: Detalles del usuario (como correo electrónico).
-
-
-- **Jetpack Compose**: Para construir la interfaz de usuario de manera declarativa.
-- **MVVM**: Para mantener una arquitectura limpia y separada de la lógica de la UI.
-- **Retrofit**: Para realizar las llamadas a la API REST.
-- **DataStore**: Para persistir datos de manera eficiente y moderna.
-
-
-1. **Clona el repositorio**:
-   ```bash
+Instalación:
+1. Clonar el repositorio:
    git clone https://github.com/ladbrone/Evaluacion2_PetsOnline.git
+2. Abrir el proyecto en Android Studio.
+3. Esperar la sincronización de Gradle.
+4. Conectar un emulador.
+
+Ejecución:
+- Ejecutar con el botón Run app en Android Studio.
+- La aplicación inicia en la pantalla de Login o Signup.
+
+3. Arquitectura y flujo
+
+Estructura de carpetas:
+
+data/
+ ┣ local/          
+ ┣ remote/         
+ ┣ repository/     
+domain/
+ ┗ model/          
+navigation/
+root/
+ui/
+ ┣ components/     
+ ┣ screens/        
+ ┗ viewmodels/     
+utils/             
+
+Gestión de estado:
+Se utiliza StateFlow dentro de los ViewModel para manejar los estados de carga, éxito y error, actualizando la interfaz en tiempo real.
+
+Navegación:
+Implementada con NavHost de Compose.
+Flujo principal: Login → Home → Perfil / Mascotas / Productos / Servicios / Reservas.
+
+4. Funcionalidades
+
+Formulario validado:
+- Formularios de Login, Registro, Mascota y Reserva.
+- Validaciones por campo (obligatorios, formato email, fechas, contraseñas y longitud).
+- Mensajes visibles y bloqueo del envío si los datos son inválidos.
+
+Navegación y backstack:
+- Flujo entre pantallas controlado por backstack.
+- Acceso protegido a pantallas internas (requieren sesión iniciada).
+
+Gestión de estado:
+- Estados de carga y error en peticiones a la API.
+- Actualización dinámica de la interfaz según las respuestas.
+
+Persistencia local:
+- CRUD local para Mascotas, Productos, Servicios y Reservas.
+- Token y datos del usuario guardados con DataStore.
+- Imagen de perfil almacenada localmente (URI en DataStore, visible sin conexión).
+
+Recursos nativos:
+- Uso de galería y cámara para seleccionar o capturar foto de perfil.
+- Manejo de permisos y fallback si el usuario los deniega.
+
+Animaciones:
+- Transiciones suaves entre pantallas y efectos visuales al cargar listas.
+- Microinteracciones que mejoran la experiencia del usuario.
+
+Consumo de API:
+- Autenticación, login, registro y validación de token.
+- Endpoint /auth/me para obtener datos del usuario autenticado.
+- Manejo de errores y códigos HTTP (401, 403, 500).
+
+5. Endpoints
+
+Base URL:
+https://x8ki-letl-twmt.n7.xano.io/api:Rfm_61dW
+
+Método: POST
+Ruta: /auth/signup
+Body: { email, password }
+Respuesta: 201 { authToken, user: { id, email, ... } }
+Errores: 400 (validación), 409 (ya existe), 500
+
+Método: POST
+Ruta: /auth/login
+Body: { email, password }
+Respuesta: 200 { authToken, user: { id, email, ... } }
+Errores: 401 (inválido), 400, 500
+
+Método: GET
+Ruta: /auth/me
+Body: - (requiere header Authorization)
+Respuesta: 200 { id, email, name?, avatarUrl? }
+Errores: 401, 403, 500
+
+6. User flows
+
+Flujo principal:
+1. El usuario abre la app en la pantalla de Login.
+2. Si no tiene cuenta, puede registrarse con validaciones activas.
+3. Al iniciar sesión, se guarda el token y se redirige al Home.
+4. Desde Home puede:
+   - Entrar al perfil, ver, cambiar o agregar su foto (galería o cámara) y cerrar sesión.
+   - Registrar o editar una mascota.
+   - Consultar productos o servicios veterinarios.
+   - Reservar una cita veterinaria.
+5. Al cerrar sesión, la app limpia los datos guardados pero mantiene el token si el usuario no borra caché.
+
+Flujo de error:
+- Si falla la conexión con la API, se muestra un mensaje de error y la opción de reintento.
+- Si el token expira, se redirige automáticamente a la pantalla de login.
