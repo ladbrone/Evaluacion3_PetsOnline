@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.evaluacion2_petsonline.data.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class LoginUiState(
@@ -25,43 +26,51 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     private val emailRegex = "^[A-Za-z0-9+_.-]+@([A-Za-z0-9.-]+\\.[A-Za-z]{2,})$".toRegex()
 
     fun onEmailChange(value: String) {
-        _uiState.value = _uiState.value.copy(email = value)
+        _uiState.update { it.copy(email = value) }
     }
 
     fun onPasswordChange(value: String) {
-        _uiState.value = _uiState.value.copy(password = value)
+        _uiState.update { it.copy(password = value) }
     }
 
     fun login() {
         val state = _uiState.value
 
         if (state.email.isBlank() || state.password.isBlank()) {
-            _uiState.value = state.copy(error = "Todos los campos son obligatorios")
+            _uiState.update { it.copy(error = "Todos los campos son obligatorios") }
             return
         }
 
         if (!isValidEmail(state.email)) {
-            _uiState.value = state.copy(error = "Correo electrónico inválido")
+            _uiState.update { it.copy(error = "Correo electrónico inválido") }
             return
         }
 
         viewModelScope.launch {
-            _uiState.value = state.copy(isLoading = true, error = null)
+            _uiState.update { it.copy(isLoading = true, error = null) }
 
             val result = repository.login(state.email, state.password)
 
-            _uiState.value = result.fold(
-                onSuccess = {
-                    _uiState.value.copy(isLoading = false, success = true)
-                },
-                onFailure = { error ->
-                    _uiState.value.copy(isLoading = false, error = error.message ?: "Error desconocido")
+            result.onSuccess { response ->
+                println("✅ Login Exitoso en Render!")
+                println("📩 Token recibido: ${response.accessToken}")
+
+                _uiState.update { it.copy(isLoading = false, success = true) }
+            }.onFailure { error ->
+                println("❌ Error en Login: ${error.message}")
+
+                _uiState.update {
+                    it.copy(isLoading = false, error = error.message ?: "Error desconocido")
                 }
-            )
+            }
         }
     }
 
     private fun isValidEmail(email: String): Boolean {
         return emailRegex.matches(email)
+    }
+
+    fun resetSuccess() {
+        _uiState.update { it.copy(success = false) }
     }
 }

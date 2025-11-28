@@ -7,12 +7,14 @@ import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
+// 1. La extensión se define a nivel de archivo (fuera de la clase)
+private val Context.dataStore by preferencesDataStore(name = "user_session")
+
 class SessionManager(private val context: Context) {
 
     companion object {
-        private val Context.dataStore by preferencesDataStore(name = "user_session")
         private val KEY_TOKEN = stringPreferencesKey("token")
-        private val KEY_AVATAR = stringPreferencesKey("avatar_uri") // 🔹 NUEVO
+        private val KEY_AVATAR = stringPreferencesKey("avatar_uri")
     }
 
     suspend fun saveToken(token: String) {
@@ -23,8 +25,11 @@ class SessionManager(private val context: Context) {
         return context.dataStore.data.map { it[KEY_TOKEN] }.first()
     }
 
-    suspend fun clearToken() {
-        context.dataStore.edit { it.remove(KEY_TOKEN) }
+    // 2. Esta es la función que tu AuthRepository estaba buscando
+    suspend fun clearSession() {
+        context.dataStore.edit {
+            it.clear() // Borra todo (Token y Avatar) al cerrar sesión
+        }
     }
 
     suspend fun saveAvatarUri(uri: String) {
@@ -33,9 +38,5 @@ class SessionManager(private val context: Context) {
 
     suspend fun getAvatarUri(): String? {
         return context.dataStore.data.map { it[KEY_AVATAR] }.first()
-    }
-
-    suspend fun clearAvatar() {
-        context.dataStore.edit { it.remove(KEY_AVATAR) }
     }
 }
