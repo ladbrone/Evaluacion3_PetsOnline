@@ -10,12 +10,13 @@ data class LoginRequest(
 data class LoginResponse(
     val success: Boolean,
     val message: String,
-    val data: LoginData?,
-    @SerializedName("access_token") val accessToken: String?
+    val data: LoginData?
 )
 
 data class LoginData(
-    val user: User
+    val user: User,
+    @SerializedName(value = "access_token", alternate = ["token", "authToken", "accessToken"])
+    val accessToken: String?
 )
 
 data class User(

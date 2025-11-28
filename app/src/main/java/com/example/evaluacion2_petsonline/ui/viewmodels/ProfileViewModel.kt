@@ -54,12 +54,10 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
             }
         }
     }
-
-
+    
     fun logout() {
         viewModelScope.launch {
-            sessionManager.clearAvatar()
-            sessionManager.clearToken()
+            repository.logout()
         }
     }
 }

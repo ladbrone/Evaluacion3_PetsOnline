@@ -53,7 +53,8 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
             result.onSuccess { response ->
                 println("✅ Login Exitoso en Render!")
-                println("📩 Token recibido: ${response.accessToken}")
+
+                println("📩 Token recibido: ${response.data?.accessToken}")
 
                 _uiState.update { it.copy(isLoading = false, success = true) }
             }.onFailure { error ->

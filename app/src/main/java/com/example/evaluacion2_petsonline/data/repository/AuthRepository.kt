@@ -14,16 +14,16 @@ class AuthRepository(context: Context) {
     suspend fun login(email: String, pass: String): Result<LoginResponse> {
         return try {
             val request = LoginRequest(email = email, password = pass)
-
-            // Llamada a la API
             val response = apiService.login(request)
 
             if (response.isSuccessful && response.body() != null) {
                 val loginResponse = response.body()!!
 
-                // Guardamos el token en SessionManager
-                loginResponse.accessToken?.let { token ->
+                loginResponse.data?.accessToken?.let { token ->
                     sessionManager.saveToken(token)
+                    println("🔑 Login: Token guardado correctamente")
+                } ?: run {
+                    println("⚠️ Login: No se encontró el token en la respuesta")
                 }
 
                 Result.success(loginResponse)
@@ -40,12 +40,77 @@ class AuthRepository(context: Context) {
         }
     }
 
-    // 3. ¡IMPORTANTE! Agregamos 'suspend' aquí para corregir el error rojo
+    // --- SIGNUP ---
+    suspend fun signup(email: String, pass: String): Result<LoginResponse> {
+        return try {
+            val request = LoginRequest(email = email, password = pass)
+            val response = apiService.signup(request)
+
+            if (response.isSuccessful && response.body() != null) {
+                val loginResponse = response.body()!!
+
+                loginResponse.data?.accessToken?.let { token ->
+                    sessionManager.saveToken(token)
+                    println("🔑 Registro: Token guardado correctamente")
+                }
+
+                Result.success(loginResponse)
+            } else {
+                val errorMsg = when (response.code()) {
+                    400 -> "Datos inválidos o usuario ya existe"
+                    else -> "Error en registro: ${response.code()}"
+                }
+                Result.failure(Exception(errorMsg))
+            }
+        } catch (e: Exception) {
+            Result.failure(Exception("Error de conexión: ${e.localizedMessage}"))
+        }
+    }
+
+    suspend fun getProfile(): Result<String> {
+        return try {
+            val token = sessionManager.getToken()
+
+            if (token == null) {
+                return Result.failure(Exception("No hay token guardado"))
+            }
+
+            val response = apiService.getProfile("Bearer $token")
+
+            if (response.isSuccessful && response.body() != null) {
+                val body = response.body()!!
+
+                println("🔍 JSON Perfil Completo: $body")
+
+                val email = try {
+                    val dataMap = body["data"] as? Map<*, *>
+                    val userMap = dataMap?.get("user") as? Map<*, *>
+
+                    if (userMap != null && userMap.containsKey("email")) {
+                        userMap["email"]?.toString()
+                    } else if (dataMap != null && dataMap.containsKey("email")) {
+                        dataMap["email"]?.toString()
+                    } else {
+                        body["email"]?.toString()
+                    }
+                } catch (e: Exception) {
+                    null
+                }
+
+                Result.success(email ?: "Correo no encontrado en la estructura")
+
+            } else {
+                Result.failure(Exception("Error al obtener perfil: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(Exception("Error: ${e.localizedMessage}"))
+        }
+    }
+
     suspend fun getToken(): String? {
         return sessionManager.getToken()
     }
 
-    // 4. ¡IMPORTANTE! Agregamos 'suspend' aquí también
     suspend fun logout() {
         sessionManager.clearSession()
     }
