@@ -28,16 +28,22 @@ Ejecución:
 3. Arquitectura y flujo
 
 Estructura de carpetas:
+```text
 data/
- ┣ local/          (SessionManager con DataStore)
- ┣ remote/         (RetrofitClient, ApiService, DogApiService)
- ┣ repository/     (AuthRepository con lógica de negocio)
+ ┣ local/          
+ ┣ remote/         
+ ┣ repository/     
 domain/
- ┗ model/          (Modelos de datos: LoginResponse, DogResponse, etc.)
+ ┗ model/
+navigation/
+root/    
 ui/
- ┣ screens/        (Pantallas Compose: Login, Home, Perfil...)
- ┗ viewmodels/     (Lógica de UI: LoginViewModel, HomeViewModel...)
-
+ ┣ components/        
+ ┣ screens/
+ ┣ theme/       
+ ┗ viewmodels/
+utils/```
+```
  Navegación: Implementada con NavHost. Flujo principal: Login → Home (con API Externa) → Perfil (con datos Backend) / Funcionalidades.
 
 4. Funcionalidades Nuevas (Evaluación 4)
