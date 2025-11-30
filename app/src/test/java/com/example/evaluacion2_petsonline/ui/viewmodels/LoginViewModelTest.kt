@@ -77,4 +77,53 @@ class LoginViewModelTest {
             assertEquals(null, viewModel.uiState.value.error)
         }
     }
+
+    @Test
+    fun `si el login falla, debe guardar el mensaje de error`() {
+        runTest {
+            viewModel.onEmailChange("admin@sistema.com")
+            viewModel.onPasswordChange("ClaveMala")
+
+            val errorMsg = "Credenciales incorrectas"
+            coEvery { mockRepository.login(any(), any()) } returns Result.failure(Exception(errorMsg))
+
+            viewModel.login()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            assertTrue(!viewModel.uiState.value.success)
+            assertEquals(errorMsg, viewModel.uiState.value.error)
+            assertTrue(!viewModel.uiState.value.isLoading)
+        }
+    }
+
+    @Test
+    fun `resetSuccess debe volver success a false`() {
+        runTest {
+            val fakeData = LoginData(mockk(relaxed=true), "token")
+            val fakeResponse = LoginResponse(true, "Exito", fakeData)
+            coEvery { mockRepository.login(any(), any()) } returns Result.success(fakeResponse)
+
+            viewModel.onEmailChange("a@b.com")
+            viewModel.onPasswordChange("123456")
+            viewModel.login()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            assertTrue(viewModel.uiState.value.success)
+
+            viewModel.resetSuccess()
+
+            assertTrue(!viewModel.uiState.value.success)
+        }
+    }
+
+    @Test
+    fun `el estado inicial debe estar vacio y sin errores`() {
+        val state = viewModel.uiState.value
+
+        assertEquals("", state.email)
+        assertEquals("", state.password)
+        assertEquals(null, state.error)
+        assertTrue(!state.isLoading)
+        assertTrue(!state.success)
+    }
 }
