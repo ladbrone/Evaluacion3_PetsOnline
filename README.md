@@ -1,126 +1,102 @@
-Evaluación 2 - PetsOnlineSPA
+Evaluación 3 - PetsOnlineSPA
 
 1. Caso elegido y alcance
 
 Caso: PetsOnlineSPA (Cliente, Productos, Servicios Veterinarios, Reservas y Mascotas).
 
-Alcance: Diseño/UI, validaciones, navegación, gestión de estado, persistencia local, recursos nativos, animaciones y consumo de API real.
+Alcance: Esta entrega final incorpora una arquitectura completa con Backend propio, Base de datos en la nube, consumo de API externa, pruebas unitarias y generación de APK firmado para distribución.
 
 2. Requisitos y ejecución
 
-Stack:
-- Kotlin + Android Studio (Jetpack Compose)
+Stack Tecnológico:
 - ViewModel + StateFlow para gestión de estado
-- DataStore para persistencia local
-- Retrofit + Coroutines para consumo de API
-- Coil para carga de imágenes
-- Navigation Compose
+- Retrofit + Coroutines para conexión con Backend
+- JUnit4 + Mockk para Pruebas Unitarias
+- Backend propio en Render (Node.js) + MongoDB Atlas
 
 Instalación:
 1. Clonar el repositorio:
    git clone https://github.com/ladbrone/Evaluacion2_PetsOnline.git
 2. Abrir el proyecto en Android Studio.
 3. Esperar la sincronización de Gradle.
-4. Conectar un emulador.
+4. Conectar un dispositivo físico o emulador.
 
 Ejecución:
 - Ejecutar con el botón Run app en Android Studio.
-- La aplicación inicia en la pantalla de Login o Signup.
+- O instalar directamente el archivo app-release.apk incluido en la carpeta app/release.
 
 3. Arquitectura y flujo
 
 Estructura de carpetas:
-
 data/
- ┣ local/          
- ┣ remote/         
- ┣ repository/     
+ ┣ local/          (SessionManager con DataStore)
+ ┣ remote/         (RetrofitClient, ApiService, DogApiService)
+ ┣ repository/     (AuthRepository con lógica de negocio)
 domain/
- ┗ model/          
-navigation/
-root/
+ ┗ model/          (Modelos de datos: LoginResponse, DogResponse, etc.)
 ui/
- ┣ components/     
- ┣ screens/        
- ┗ viewmodels/     
-utils/             
+ ┣ screens/        (Pantallas Compose: Login, Home, Perfil...)
+ ┗ viewmodels/     (Lógica de UI: LoginViewModel, HomeViewModel...)
 
-Gestión de estado:
-Se utiliza StateFlow dentro de los ViewModel para manejar los estados de carga, éxito y error, actualizando la interfaz en tiempo real.
+ Navegación: Implementada con NavHost. Flujo principal: Login → Home (con API Externa) → Perfil (con datos Backend) / Funcionalidades.
 
-Navegación:
-Implementada con NavHost de Compose.
-Flujo principal: Login → Home → Perfil / Mascotas / Productos / Servicios / Reservas.
+4. Funcionalidades Nuevas (Evaluación 4)
 
-4. Funcionalidades
+Backend Propio y Base de Datos:
+- Despliegue de microservicio REST en Render.
+- Conexión a base de datos MongoDB Atlas en la nube.
+- Autenticación real (Login y Registro) validada contra el servidor.
 
-Formulario validado:
-- Formularios de Login, Registro, Mascota y Reserva.
-- Validaciones por campo (obligatorios, formato email, fechas, contraseñas y longitud).
-- Mensajes visibles y bloqueo del envío si los datos son inválidos.
+API Externa:
+- Integración con "Dog CEO API" en la pantalla Home.
+- Muestra una imagen aleatoria ("Mascota destacada") al iniciar la app.
 
-Navegación y backstack:
-- Flujo entre pantallas controlado por backstack.
-- Acceso protegido a pantallas internas (requieren sesión iniciada).
+Pruebas Unitarias:
+- Tests implementados en LoginViewModelTest.
+- Validación de lógica de negocio (email inválido, campos vacíos) y simulación de éxito con Mockk.
 
-Gestión de estado:
-- Estados de carga y error en peticiones a la API.
-- Actualización dinámica de la interfaz según las respuestas.
+APK Firmado:
+- Generación de app-release.apk firmado digitalmente con petsonline-key.jks.
+- Configurado para release (sin logs de debug en producción).
 
-Persistencia local:
-- CRUD local para Mascotas, Productos, Servicios y Reservas.
-- Token y datos del usuario guardados con DataStore.
-- Imagen de perfil almacenada localmente (URI en DataStore, visible sin conexión).
+Persistencia y Sesión:
+- Manejo seguro del Token JWT recibido desde el backend.
 
-Recursos nativos:
-- Uso de galería y cámara para seleccionar o capturar foto de perfil.
-- Manejo de permisos y fallback si el usuario los deniega.
+5. Endpoints Utilizados
 
-Animaciones:
-- Transiciones suaves entre pantallas y efectos visuales al cargar listas.
-- Microinteracciones que mejoran la experiencia del usuario.
-
-Consumo de API:
-- Autenticación, login, registro y validación de token.
-- Endpoint /auth/me para obtener datos del usuario autenticado.
-- Manejo de errores y códigos HTTP (401, 403, 500).
-
-5. Endpoints
-
-Base URL:
-https://x8ki-letl-twmt.n7.xano.io/api:Rfm_61dW
+Backend Propio (Render): Base URL: https://petsonline-backend.onrender.com/api/
 
 Método: POST
-Ruta: /auth/signup
-Body: { email, password }
-Respuesta: 201 { authToken, user: { id, email, ... } }
-Errores: 400 (validación), 409 (ya existe), 500
+- Ruta: /auth/login
+- Body: { email, password }
+- Respuesta: Token de acceso + Datos de usuario.
 
 Método: POST
-Ruta: /auth/login
-Body: { email, password }
-Respuesta: 200 { authToken, user: { id, email, ... } }
-Errores: 401 (inválido), 400, 500
+- Ruta: /auth/signup
+- Body: { email, password }
+- Respuesta: Creación de usuario y token.
 
 Método: GET
-Ruta: /auth/me
-Body: - (requiere header Authorization)
-Respuesta: 200 { id, email, name?, avatarUrl? }
-Errores: 401, 403, 500
+- Ruta: /auth/profile
+- Header: Authorization: Bearer <TOKEN>
+- Respuesta: Datos del perfil del usuario autenticado.
+
+API Externa (Dog CEO): Base URL: https://dog.ceo/api/
+
+Método: GET
+- Ruta: breeds/image/random
+- Respuesta: URL de imagen aleatoria de perro.
 
 6. User flows
 
-Flujo principal:
-1. El usuario abre la app en la pantalla de Login.
-2. Si no tiene cuenta, puede registrarse con validaciones activas.
-3. Al iniciar sesión, se guarda el token y se redirige al Home.
-4. Desde Home puede:
-   - Entrar al perfil, ver, cambiar o agregar su foto (galería o cámara) y cerrar sesión.
-   - Registrar o editar una mascota.
-   - Consultar productos o servicios veterinarios.
-   - Reservar una cita veterinaria.
-5. Al cerrar sesión, la app limpia los datos guardados pero mantiene el token si el usuario no borra caché.
+Flujo de Autenticación:
+- Usuario ingresa credenciales en Login.
+- App consulta a Render.
+- Si es correcto, guarda el Token y navega al Home.
+- En Home, se carga automáticamente la "Mascota del día" desde la API externa.
 
-Flujo de error:
-- Si falla la conexión con la API, se muestra un mensaje de error y la opción de reintento.
-- Si el token expira, se redirige automáticamente a la pantalla de login.
+Flujo de Perfil:
+- Usuario entra a "Ver Perfil".
+- App usa el Token guardado para consultar /auth/profile.
+- Se muestra el correo real del usuario (admin@sistema.com).
+- Al cerrar sesión, se borra el token y se vuelve al Login.
