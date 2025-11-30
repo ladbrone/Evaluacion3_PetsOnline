@@ -16,7 +16,7 @@ Stack Tecnológico:
 
 Instalación:
 1. Clonar el repositorio:
-   git clone https://github.com/ladbrone/Evaluacion2_PetsOnline.git
+   git clone https://github.com/ladbrone/Evaluacion3_PetsOnline.git
 2. Abrir el proyecto en Android Studio.
 3. Esperar la sincronización de Gradle.
 4. Conectar un dispositivo físico o emulador.
