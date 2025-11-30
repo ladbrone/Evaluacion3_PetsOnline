@@ -12,7 +12,10 @@ import androidx.navigation.NavController
 import com.example.evaluacion2_petsonline.viewmodel.LoginViewModel
 
 @Composable
-fun LoginScreen(navController: NavController, viewModel: LoginViewModel = viewModel()) {
+fun LoginScreen(
+    navController: NavController,
+    viewModel: LoginViewModel = viewModel(factory = LoginViewModel.Factory)
+) {
     val state by viewModel.uiState.collectAsState()
 
     Box(

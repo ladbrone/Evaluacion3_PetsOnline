@@ -2,7 +2,10 @@ package com.example.evaluacion2_petsonline.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.CreationExtras
 import com.example.evaluacion2_petsonline.data.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -55,7 +58,6 @@ class LoginViewModel(
 
             result.onSuccess { response ->
                 println("✅ Login Exitoso en Render!")
-
                 println("📩 Token recibido: ${response.data?.accessToken}")
 
                 _uiState.update { it.copy(isLoading = false, success = true) }
@@ -75,5 +77,22 @@ class LoginViewModel(
 
     fun resetSuccess() {
         _uiState.update { it.copy(success = false) }
+    }
+
+    companion object {
+        val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(
+                modelClass: Class<T>,
+                extras: CreationExtras
+            ): T {
+                val application = checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY])
+
+                return LoginViewModel(
+                    application = application,
+                    repository = AuthRepository(application)
+                ) as T
+            }
+        }
     }
 }

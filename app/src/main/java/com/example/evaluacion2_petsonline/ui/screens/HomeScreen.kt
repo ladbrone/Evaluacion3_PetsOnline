@@ -1,4 +1,4 @@
-    package com.example.evaluacion2_petsonline.ui.screens
+package com.example.evaluacion2_petsonline.ui.screens
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -9,15 +9,21 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.example.evaluacion2_petsonline.utils.NotificationHelper
+import com.example.evaluacion2_petsonline.ui.viewmodels.HomeViewModel
 
 @Composable
 fun HomeScreen(navController: NavController) {
     val context = LocalContext.current
+
+    val viewModel: HomeViewModel = viewModel()
 
     var permisoConcedido by remember { mutableStateOf(false) }
 
@@ -57,7 +63,30 @@ fun HomeScreen(navController: NavController) {
                 text = "Pantalla Home",
                 style = MaterialTheme.typography.headlineMedium
             )
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Text(
+                text = "Mascota Destacada del día 🐶",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .padding(16.dp),
+                elevation = CardDefaults.cardElevation(4.dp)
+            ) {
+                AsyncImage(
+                    model = viewModel.dogImageState,
+                    contentDescription = "Foto aleatoria de perro",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
 
             Button(onClick = { navController.navigate("profile") }) {
                 Text("Ver Perfil")
