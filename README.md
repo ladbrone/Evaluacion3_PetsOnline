@@ -42,7 +42,7 @@ ui/
  ┣ screens/
  ┣ theme/       
  ┗ viewmodels/
-utils/```
+utils/
 ```
  Navegación: Implementada con NavHost. Flujo principal: Login → Home (con API Externa) → Perfil (con datos Backend) / Funcionalidades.
 
