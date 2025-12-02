@@ -1,51 +1,30 @@
-package com.example.evaluacion2_petsonline.data.local.repository
+package com.example.evaluacion2_petsonline.data.repository
 
-import android.content.Context
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
+// Nota: Si el archivo está en la carpeta 'local', muévelo a 'repository'
+// o ajusta la línea del package. Lo ideal es: data.repository
+
+import com.example.evaluacion2_petsonline.data.remote.RetrofitClient
 import com.example.evaluacion2_petsonline.domain.model.Producto
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 
-val Context.productoDataStore by preferencesDataStore("productos_store")
+class ProductoRepository {
+    // Instancia de la API
+    private val apiService = RetrofitClient.apiService
 
-class ProductoRepository(private val context: Context) {
-    private val gson = Gson()
-    private val KEY = stringPreferencesKey("productos_list")
+    // Función para obtener productos desde la Nube (Render)
+    suspend fun getProductos(): Result<List<Producto>> {
+        return try {
+            val response = apiService.getProductos()
 
-    fun getProductos(): Flow<List<Producto>> {
-        return context.productoDataStore.data.map { prefs ->
-            val json = prefs[KEY] ?: "[]"
-            val type = object : TypeToken<List<Producto>>() {}.type
-            gson.fromJson(json, type)
+            if (response.isSuccessful && response.body() != null) {
+                // Éxito: Devolvemos la lista que viene del servidor
+                Result.success(response.body()!!)
+            } else {
+                // Error del servidor (ej: 404, 500)
+                Result.failure(Exception("Error al cargar productos: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            // Error de conexión
+            Result.failure(e)
         }
-    }
-
-    suspend fun inicializarProductos() {
-        val actuales = getCurrentProductos()
-        if (actuales.isEmpty()) {
-            val productosIniciales = listOf(
-                Producto(1, "Alimento Premium", "Bolsa de 5kg para perros adultos", 22000.0),
-                Producto(2, "Collar antipulgas", "Protección por 6 meses", 9500.0),
-                Producto(3, "Juguete masticable", "Ideal para cachorros", 4500.0),
-                Producto(4, "Shampoo hipoalergénico", "Especial para piel sensible", 7800.0)
-            )
-            saveList(productosIniciales)
-        }
-    }
-
-    private suspend fun saveList(list: List<Producto>) {
-        val json = gson.toJson(list)
-        context.productoDataStore.edit { it[KEY] = json }
-    }
-
-    private suspend fun getCurrentProductos(): List<Producto> {
-        val prefs = context.productoDataStore.data.map { it[KEY] ?: "[]" }.first()
-        val type = object : TypeToken<List<Producto>>() {}.type
-        return gson.fromJson(prefs, type)
     }
 }

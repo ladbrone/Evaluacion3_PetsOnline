@@ -43,6 +43,7 @@ fun AppNavigation(startDestination: String) {
             composable("profile") { ProfileScreen(navController) }
             composable("mascotas") { MascotasScreen(navController) }
             composable("productos") { ProductosScreen(navController) }
+            composable("marketplace") { MarketplaceScreen(navController) }
             composable("servicios") { ServiciosScreen(navController) }
             composable("reserva") { ReservaScreen(navController) }
         }

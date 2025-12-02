@@ -5,12 +5,14 @@ import com.example.evaluacion2_petsonline.data.local.SessionManager
 import com.example.evaluacion2_petsonline.data.remote.RetrofitClient
 import com.example.evaluacion2_petsonline.domain.model.LoginRequest
 import com.example.evaluacion2_petsonline.domain.model.LoginResponse
+import com.example.evaluacion2_petsonline.domain.model.RegisterRequest // 👈 IMPORTANTE: Agregamos este import
 
 class AuthRepository(context: Context) {
 
     private val apiService = RetrofitClient.apiService
     private val sessionManager = SessionManager(context)
 
+    // --- LOGIN ---
     suspend fun login(email: String, pass: String): Result<LoginResponse> {
         return try {
             val request = LoginRequest(email = email, password = pass)
@@ -40,10 +42,18 @@ class AuthRepository(context: Context) {
         }
     }
 
-    // --- SIGNUP ---
+    // --- SIGNUP (CORREGIDO) ---
     suspend fun signup(email: String, pass: String): Result<LoginResponse> {
         return try {
-            val request = LoginRequest(email = email, password = pass)
+            // CORRECCIÓN: Usamos RegisterRequest para enviar nombre y rol
+            // "ADMIN" es el rol que confirmamos que funciona en tu backend
+            val request = RegisterRequest(
+                email = email,
+                password = pass,
+                fullName = "Usuario App",
+                role = "ADMIN"
+            )
+
             val response = apiService.signup(request)
 
             if (response.isSuccessful && response.body() != null) {
@@ -57,7 +67,7 @@ class AuthRepository(context: Context) {
                 Result.success(loginResponse)
             } else {
                 val errorMsg = when (response.code()) {
-                    400 -> "Datos inválidos o usuario ya existe"
+                    400 -> "Datos inválidos (Contraseña débil o usuario ya existe)"
                     else -> "Error en registro: ${response.code()}"
                 }
                 Result.failure(Exception(errorMsg))
@@ -67,6 +77,7 @@ class AuthRepository(context: Context) {
         }
     }
 
+    // --- GET PROFILE ---
     suspend fun getProfile(): Result<String> {
         return try {
             val token = sessionManager.getToken()
@@ -107,6 +118,7 @@ class AuthRepository(context: Context) {
         }
     }
 
+    // --- UTILIDADES ---
     suspend fun getToken(): String? {
         return sessionManager.getToken()
     }

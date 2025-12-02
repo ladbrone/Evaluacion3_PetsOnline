@@ -23,10 +23,12 @@ import com.example.evaluacion2_petsonline.ui.viewmodels.HomeViewModel
 fun HomeScreen(navController: NavController) {
     val context = LocalContext.current
 
+    // Inyectamos el ViewModel para la API externa (Perrito)
     val viewModel: HomeViewModel = viewModel()
 
     var permisoConcedido by remember { mutableStateOf(false) }
 
+    // Lógica de permisos para notificaciones
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { permitido -> permisoConcedido = permitido }
@@ -49,7 +51,7 @@ fun HomeScreen(navController: NavController) {
             NotificationHelper.showNotification(
                 context,
                 "PetsOnline 🐾",
-                "¡Recuerda revisar tus reservas veterinarias de hoy!"
+                "¡Bienvenido! Revisa las novedades en nuestra tienda."
             )
         }
     }
@@ -65,6 +67,7 @@ fun HomeScreen(navController: NavController) {
             )
             Spacer(modifier = Modifier.height(10.dp))
 
+            // --- API EXTERNA: Mascota Destacada ---
             Text(
                 text = "Mascota Destacada del día 🐶",
                 style = MaterialTheme.typography.labelLarge,
@@ -85,26 +88,48 @@ fun HomeScreen(navController: NavController) {
                     modifier = Modifier.fillMaxSize()
                 )
             }
+            // --------------------------------------
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            Button(onClick = { navController.navigate("profile") }) {
+            // BOTÓN PERFIL
+            Button(
+                onClick = { navController.navigate("profile") },
+                modifier = Modifier.fillMaxWidth(0.7f)
+            ) {
                 Text("Ver Perfil")
             }
+
             Spacer(Modifier.height(12.dp))
-            Button(onClick = { navController.navigate("mascotas") }) {
+
+            // BOTÓN MIS MASCOTAS
+            Button(
+                onClick = { navController.navigate("mascotas") },
+                modifier = Modifier.fillMaxWidth(0.7f)
+            ) {
                 Text("Mis Mascotas")
             }
+
             Spacer(Modifier.height(12.dp))
-            Button(onClick = { navController.navigate("servicios") }) {
-                Text("Servicios Veterinarios")
+
+            // --- NUEVO BOTÓN UNIFICADO: MARKETPLACE ---
+            // Este botón reemplaza a los antiguos de "Productos" y "Servicios"
+            Button(
+                onClick = { navController.navigate("marketplace") },
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+                modifier = Modifier.fillMaxWidth(0.7f)
+            ) {
+                Text("Ir al Marketplace (Tienda y Servicios)")
             }
+            // ------------------------------------------
+
             Spacer(Modifier.height(12.dp))
-            Button(onClick = { navController.navigate("productos") }) {
-                Text("Productos")
-            }
-            Spacer(Modifier.height(12.dp))
-            Button(onClick = { navController.navigate("reserva") }) {
+
+            // BOTÓN RESERVAR
+            Button(
+                onClick = { navController.navigate("reserva") },
+                modifier = Modifier.fillMaxWidth(0.7f)
+            ) {
                 Text("Reservar Cita")
             }
         }

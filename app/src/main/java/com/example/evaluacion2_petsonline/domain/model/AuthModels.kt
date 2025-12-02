@@ -2,6 +2,7 @@ package com.example.evaluacion2_petsonline.domain.model
 
 import com.google.gson.annotations.SerializedName
 
+// --- LOGIN ---
 data class LoginRequest(
     val email: String,
     val password: String
@@ -15,6 +16,7 @@ data class LoginResponse(
 
 data class LoginData(
     val user: User,
+    // Aceptamos varios nombres para el token por seguridad
     @SerializedName(value = "access_token", alternate = ["token", "authToken", "accessToken"])
     val accessToken: String?
 )
@@ -25,4 +27,13 @@ data class User(
     val role: String,
     val isActive: Boolean,
     val emailVerified: Boolean
+)
+
+// --- REGISTRO (Esta es la que te faltaba) ---
+data class RegisterRequest(
+    val email: String,
+    val password: String,
+    // El backend pide "nombre", así que lo mapeamos aquí
+    @SerializedName("nombre") val fullName: String,
+    val role: String = "user"
 )
