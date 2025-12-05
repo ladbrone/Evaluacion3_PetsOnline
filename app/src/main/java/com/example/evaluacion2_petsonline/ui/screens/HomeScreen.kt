@@ -23,12 +23,11 @@ import com.example.evaluacion2_petsonline.ui.viewmodels.HomeViewModel
 fun HomeScreen(navController: NavController) {
     val context = LocalContext.current
 
-    // Inyectamos el ViewModel para la API externa (Perrito)
     val viewModel: HomeViewModel = viewModel()
 
     var permisoConcedido by remember { mutableStateOf(false) }
 
-    // Lógica de permisos para notificaciones
+
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { permitido -> permisoConcedido = permitido }
@@ -67,7 +66,6 @@ fun HomeScreen(navController: NavController) {
             )
             Spacer(modifier = Modifier.height(10.dp))
 
-            // --- API EXTERNA: Mascota Destacada ---
             Text(
                 text = "Mascota Destacada del día 🐶",
                 style = MaterialTheme.typography.labelLarge,
@@ -88,11 +86,9 @@ fun HomeScreen(navController: NavController) {
                     modifier = Modifier.fillMaxSize()
                 )
             }
-            // --------------------------------------
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // BOTÓN PERFIL
             Button(
                 onClick = { navController.navigate("profile") },
                 modifier = Modifier.fillMaxWidth(0.7f)
@@ -102,7 +98,6 @@ fun HomeScreen(navController: NavController) {
 
             Spacer(Modifier.height(12.dp))
 
-            // BOTÓN MIS MASCOTAS
             Button(
                 onClick = { navController.navigate("mascotas") },
                 modifier = Modifier.fillMaxWidth(0.7f)
@@ -112,8 +107,7 @@ fun HomeScreen(navController: NavController) {
 
             Spacer(Modifier.height(12.dp))
 
-            // --- NUEVO BOTÓN UNIFICADO: MARKETPLACE ---
-            // Este botón reemplaza a los antiguos de "Productos" y "Servicios"
+
             Button(
                 onClick = { navController.navigate("marketplace") },
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
@@ -121,11 +115,11 @@ fun HomeScreen(navController: NavController) {
             ) {
                 Text("Ir al Marketplace (Tienda y Servicios)")
             }
-            // ------------------------------------------
+
 
             Spacer(Modifier.height(12.dp))
 
-            // BOTÓN RESERVAR
+
             Button(
                 onClick = { navController.navigate("reserva") },
                 modifier = Modifier.fillMaxWidth(0.7f)

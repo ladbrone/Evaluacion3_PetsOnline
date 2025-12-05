@@ -12,7 +12,6 @@ class AuthRepository(context: Context) {
     private val apiService = RetrofitClient.apiService
     private val sessionManager = SessionManager(context)
 
-    // --- LOGIN ---
     suspend fun login(email: String, pass: String): Result<LoginResponse> {
         return try {
             val request = LoginRequest(email = email, password = pass)
@@ -42,11 +41,8 @@ class AuthRepository(context: Context) {
         }
     }
 
-    // --- SIGNUP (CORREGIDO) ---
     suspend fun signup(email: String, pass: String): Result<LoginResponse> {
         return try {
-            // CORRECCIÓN: Usamos RegisterRequest para enviar nombre y rol
-            // "ADMIN" es el rol que confirmamos que funciona en tu backend
             val request = RegisterRequest(
                 email = email,
                 password = pass,
@@ -77,7 +73,6 @@ class AuthRepository(context: Context) {
         }
     }
 
-    // --- GET PROFILE ---
     suspend fun getProfile(): Result<String> {
         return try {
             val token = sessionManager.getToken()
@@ -118,7 +113,6 @@ class AuthRepository(context: Context) {
         }
     }
 
-    // --- UTILIDADES ---
     suspend fun getToken(): String? {
         return sessionManager.getToken()
     }

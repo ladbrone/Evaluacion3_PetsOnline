@@ -1,49 +1,84 @@
-package com.example.evaluacion2_petsonline.data.local.repository
+package com.example.evaluacion2_petsonline.data.repository
 
 import android.content.Context
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
+import com.example.evaluacion2_petsonline.data.local.SessionManager
+import com.example.evaluacion2_petsonline.data.remote.RetrofitClient
 import com.example.evaluacion2_petsonline.domain.model.Reserva
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
+import com.example.evaluacion2_petsonline.domain.model.ReservaRequest
+import com.example.evaluacion2_petsonline.domain.model.ReservaResponse
+import com.example.evaluacion2_petsonline.domain.model.Servicio
 
-val Context.reservaDataStore by preferencesDataStore("reservas_store")
+class ReservaRepository(context: Context) {
+    private val api = RetrofitClient.apiService
+    private val sessionManager = SessionManager(context)
 
-class ReservaRepository(private val context: Context) {
-    private val gson = Gson()
-    private val KEY = stringPreferencesKey("reservas_list")
+    suspend fun getServicios(): Result<List<Servicio>> {
+        val serviciosFijos = listOf(
+            Servicio(
+                id = "692ed9570c37c914c54fa07e",
+                nombre = "Consulta General",
+                descripcion = "Revisión completa de salud y signos vitales.",
+                precio = 20000,
+                imagen = "",
+                duracion = "30 min"
+            ),
+            Servicio(
+                id = "692ed9610c37c914c54fa07f",
+                nombre = "Baño y Corte",
+                descripcion = "Baño sanitario, corte de uñas y limpieza.",
+                precio = 35000,
+                imagen = "",
+                duracion = "60 min"
+            ),
+            Servicio(
+                id = "dummy_vacunacion",
+                nombre = "Vacunación",
+                descripcion = "Aplicación de vacunas anuales.",
+                precio = 15000,
+                imagen = "",
+                duracion = "15 min"
+            )
+        )
+        return Result.success(serviciosFijos)
+    }
 
-    fun getReservas(): Flow<List<Reserva>> {
-        return context.reservaDataStore.data.map { prefs ->
-            val json = prefs[KEY] ?: "[]"
-            val type = object : TypeToken<List<Reserva>>() {}.type
-            gson.fromJson(json, type)
+
+    suspend fun getReservas(): Result<List<Reserva>> {
+        val token = sessionManager.getToken() ?: return Result.failure(Exception("Sin token"))
+        return try {
+            val response = api.getMisReservas("Bearer $token")
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!)
+            } else {
+                Result.success(emptyList())
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 
-    suspend fun saveReserva(reserva: Reserva) {
-        val list = getCurrentReservas().toMutableList()
-        list.add(reserva)
-        saveList(list)
+    suspend fun crearReserva(servicioId: String, fecha: String, hora: String): Result<ReservaResponse> {
+        val token = sessionManager.getToken() ?: return Result.failure(Exception("Sin token"))
+        return try {
+            val request = ReservaRequest(servicioId, fecha, hora)
+            val response = api.crearReserva("Bearer $token", request)
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!)
+            } else {
+                Result.failure(Exception("Error al reservar: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
-    suspend fun deleteReserva(id: Int) {
-        val list = getCurrentReservas().filter { it.id != id }
-        saveList(list)
-    }
-
-    private suspend fun saveList(list: List<Reserva>) {
-        val json = gson.toJson(list)
-        context.reservaDataStore.edit { it[KEY] = json }
-    }
-
-    private suspend fun getCurrentReservas(): List<Reserva> {
-        val prefs = context.reservaDataStore.data.map { it[KEY] ?: "[]" }.first()
-        val type = object : TypeToken<List<Reserva>>() {}.type
-        return gson.fromJson(prefs, type)
+    suspend fun eliminarReserva(id: String): Result<Unit> {
+        val token = sessionManager.getToken() ?: return Result.failure(Exception("Sin token"))
+        return try {
+            val response = api.eliminarReserva("Bearer $token", id)
+            if (response.isSuccessful) Result.success(Unit) else Result.failure(Exception("Error"))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 }

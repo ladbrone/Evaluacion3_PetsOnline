@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class ServicioViewModel(app: Application) : AndroidViewModel(app) {
-    // El repositorio ya no pide contexto
     private val repo = ServicioRepository()
 
     private val _servicios = MutableStateFlow<List<Servicio>>(emptyList())
@@ -22,7 +21,6 @@ class ServicioViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun cargarServicios() {
         viewModelScope.launch {
-            // Llamamos a la función suspendida del repositorio
             val resultado = repo.getServicios()
 
             resultado.onSuccess { lista ->

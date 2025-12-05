@@ -3,74 +3,82 @@ package com.example.evaluacion2_petsonline.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.evaluacion2_petsonline.data.repository.ReservaRepository
 import com.example.evaluacion2_petsonline.domain.model.Reserva
-import com.example.evaluacion2_petsonline.data.local.repository.ReservaRepository
+import com.example.evaluacion2_petsonline.domain.model.Servicio
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class ReservaUiState(
-    val lista: List<Reserva> = emptyList(),
-    val nombreMascota: String = "",
-    val servicio: String = "",
-    val fecha: String = "",
-    val observacion: String = "",
-    val error: String? = null
+    val listaReservas: List<Reserva> = emptyList(),
+    val listaServicios: List<Servicio> = emptyList(),
+    val isLoading: Boolean = false,
+    val error: String? = null,
+    val success: String? = null
 )
 
 class ReservaViewModel(app: Application) : AndroidViewModel(app) {
     private val repo = ReservaRepository(app)
-
-    private val _ui = MutableStateFlow(ReservaUiState())
-    val ui: StateFlow<ReservaUiState> = _ui
+    private val _uiState = MutableStateFlow(ReservaUiState())
+    val uiState = _uiState.asStateFlow()
 
     init {
+        cargarDatosIniciales()
+    }
+
+    private fun cargarDatosIniciales() {
         viewModelScope.launch {
-            repo.getReservas().collectLatest { reservas ->
-                _ui.value = _ui.value.copy(lista = reservas)
+            _uiState.update { it.copy(isLoading = true) }
+
+            repo.getServicios().onSuccess { servicios ->
+                _uiState.update { it.copy(listaServicios = servicios) }
+            }
+
+            cargarReservas()
+        }
+    }
+
+    fun cargarReservas() {
+        viewModelScope.launch {
+            val result = repo.getReservas()
+            result.onSuccess { reservas ->
+                _uiState.update { it.copy(isLoading = false, listaReservas = reservas) }
+            }.onFailure {
+                _uiState.update { it.copy(isLoading = false) }
             }
         }
     }
 
-    fun onMascota(v: String) { _ui.value = _ui.value.copy(nombreMascota = v) }
-    fun onServicio(v: String) { _ui.value = _ui.value.copy(servicio = v) }
-    fun onFecha(v: String) { _ui.value = _ui.value.copy(fecha = v) }
-    fun onObs(v: String) { _ui.value = _ui.value.copy(observacion = v) }
-
-    private fun isValidDate(input: String): Boolean {
-        if (!Regex("""^\d{2}/\d{2}/\d{4}$""").matches(input)) return false
-        return try {
-            java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault()).apply {
-                isLenient = false
-            }.parse(input)
-            true
-        } catch (_: Exception) { false }
-    }
-
-    fun agregarReserva() {
-        val s = _ui.value
-        if (s.nombreMascota.isBlank() || s.servicio.isBlank() || s.fecha.isBlank()) {
-            _ui.value = s.copy(error = "Completa todos los campos obligatorios")
+    fun crearReserva(servicioId: String, fecha: String, hora: String) {
+        if (servicioId.isBlank() || fecha.isBlank() || hora.isBlank()) {
+            _uiState.update { it.copy(error = "Faltan campos por completar") }
             return
         }
-        if (!isValidDate(s.fecha)) {
-            _ui.value = s.copy(error = "La fecha debe ser válida con formato dd/MM/yyyy")
-            return
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, error = null, success = null) }
+
+            val result = repo.crearReserva(servicioId, fecha, hora)
+
+            result.onSuccess {
+                _uiState.update { it.copy(isLoading = false, success = "¡Reserva Creada!") }
+                cargarReservas()
+            }.onFailure { e ->
+                _uiState.update { it.copy(isLoading = false, error = "Error: ${e.message}") }
+            }
         }
-        val nueva = Reserva(
-            id = (s.lista.maxOfOrNull { it.id } ?: 0) + 1,
-            nombreMascota = s.nombreMascota,
-            servicio = s.servicio,
-            fecha = s.fecha,
-            observacion = s.observacion
-        )
-        viewModelScope.launch { repo.saveReserva(nueva) }
-        _ui.value = s.copy(nombreMascota = "", servicio = "", fecha = "", observacion = "", error = null)
-    }
-    fun eliminarReserva(id: Int) {
-        viewModelScope.launch { repo.deleteReserva(id) }
     }
 
+    fun eliminarReserva(id: String) {
+        viewModelScope.launch {
+            repo.eliminarReserva(id)
+            cargarReservas()
+        }
+    }
 
+    fun clearMessages() {
+        _uiState.update { it.copy(error = null, success = null) }
+    }
 }

@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class ProductoViewModel(app: Application) : AndroidViewModel(app) {
-    // El repositorio ya no pide contexto, así que lo instanciamos directo
     private val repo = ProductoRepository()
 
     private val _productos = MutableStateFlow<List<Producto>>(emptyList())
@@ -22,14 +21,12 @@ class ProductoViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun cargarProductos() {
         viewModelScope.launch {
-            // Llamamos a la función suspendida del repositorio
             val resultado = repo.getProductos()
 
             resultado.onSuccess { lista ->
                 _productos.value = lista
             }.onFailure {
                 println("Error cargando productos: ${it.message}")
-                // Aquí podrías manejar un estado de error si quisieras
             }
         }
     }

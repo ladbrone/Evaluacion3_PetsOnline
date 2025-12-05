@@ -7,7 +7,6 @@ import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
-// 1. La extensión se define a nivel de archivo (fuera de la clase)
 private val Context.dataStore by preferencesDataStore(name = "user_session")
 
 class SessionManager(private val context: Context) {
@@ -25,10 +24,9 @@ class SessionManager(private val context: Context) {
         return context.dataStore.data.map { it[KEY_TOKEN] }.first()
     }
 
-    // 2. Esta es la función que tu AuthRepository estaba buscando
     suspend fun clearSession() {
         context.dataStore.edit {
-            it.clear() // Borra todo (Token y Avatar) al cerrar sesión
+            it.clear()
         }
     }
 

@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
@@ -17,8 +18,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.example.evaluacion2_petsonline.domain.model.Producto
-import com.example.evaluacion2_petsonline.domain.model.Servicio
 import com.example.evaluacion2_petsonline.viewmodel.MarketplaceViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -29,7 +28,6 @@ fun MarketplaceScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
 
-    // Filtrado local (por si quieres buscar en tiempo real)
     val filteredProductos = state.productos.filter {
         it.nombre.contains(state.searchQuery, ignoreCase = true)
     }
@@ -39,12 +37,22 @@ fun MarketplaceScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Marketplace Veterinario") })
+            TopAppBar(
+                title = { Text("Marketplace Veterinario") },
+                // --- BOTÓN VOLVER AL HOME ---
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Volver"
+                        )
+                    }
+                }
+            )
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding).padding(16.dp)) {
 
-            // --- BUSCADOR ---
             OutlinedTextField(
                 value = state.searchQuery,
                 onValueChange = { viewModel.onSearchChanged(it) },
@@ -55,7 +63,6 @@ fun MarketplaceScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            // --- FILTROS (CHIPS) ---
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilterChip(
                     selected = state.selectedTab == 0,
@@ -83,7 +90,6 @@ fun MarketplaceScreen(
             } else {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
 
-                    // SECCIÓN PRODUCTOS
                     if (state.selectedTab == 0 || state.selectedTab == 1) {
                         if (filteredProductos.isNotEmpty()) {
                             item { Text("Productos", style = MaterialTheme.typography.titleMedium) }
@@ -99,16 +105,18 @@ fun MarketplaceScreen(
                         }
                     }
 
-                    // SECCIÓN SERVICIOS
                     if (state.selectedTab == 0 || state.selectedTab == 2) {
                         if (filteredServicios.isNotEmpty()) {
-                            item { Text("Servicios", style = MaterialTheme.typography.titleMedium) }
+                            item {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text("Servicios", style = MaterialTheme.typography.titleMedium)
+                            }
                             items(filteredServicios) { servicio ->
                                 ItemCard(
                                     titulo = servicio.nombre,
                                     desc = servicio.descripcion,
                                     precio = "$ ${servicio.precio}",
-                                    imagenUrl = servicio.imagen,
+                                    imagenUrl = servicio.imagen ?: "",
                                     icono = Icons.Default.Star
                                 )
                             }
@@ -120,21 +128,28 @@ fun MarketplaceScreen(
     }
 }
 
-// Tarjeta Reutilizable para que se vea bonito
 @Composable
-fun ItemCard(titulo: String, desc: String, precio: String, imagenUrl: String, icono: ImageVector) {
+fun ItemCard(titulo: String, desc: String, precio: String, imagenUrl: String?, icono: ImageVector) {
     Card(elevation = CardDefaults.cardElevation(4.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth().height(100.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Imagen
-            AsyncImage(
-                model = imagenUrl,
-                contentDescription = null,
-                modifier = Modifier.width(100.dp).fillMaxHeight(),
-                contentScale = ContentScale.Crop
-            )
+            if (!imagenUrl.isNullOrBlank()) {
+                AsyncImage(
+                    model = imagenUrl,
+                    contentDescription = null,
+                    modifier = Modifier.width(100.dp).fillMaxHeight(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Box(
+                    modifier = Modifier.width(100.dp).fillMaxHeight(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(icono, contentDescription = null, tint = MaterialTheme.colorScheme.outline)
+                }
+            }
 
             // Textos
             Column(

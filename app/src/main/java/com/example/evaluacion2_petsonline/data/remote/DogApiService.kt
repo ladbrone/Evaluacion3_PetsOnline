@@ -10,7 +10,6 @@ interface DogApi {
     suspend fun getRandomDog(): DogResponse
 }
 
-// Objeto Singleton para esta API específica
 object DogRetrofitClient {
     private const val BASE_URL = "https://dog.ceo/api/"
 
